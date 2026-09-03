@@ -164,11 +164,18 @@ func TestPaymentLifecycle_CreatedThenAutoApprovedAsynchronously(t *testing.T) {
 	paymentID := created["id"].(string)
 
 	assert.Eventually(t, func() bool {
+		// testify runs this condition func on its own goroutine each tick;
+		// t.FailNow() (used by require) is unsafe there, so use assert +
+		// early-return false instead of require on any failure.
 		resp, err := http.Get(srv.URL + "/api/v1/payments/" + paymentID)
-		require.NoError(t, err)
+		if !assert.NoError(t, err) {
+			return false
+		}
 		defer resp.Body.Close()
 		var body map[string]any
-		require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+		if !assert.NoError(t, json.NewDecoder(resp.Body).Decode(&body)) {
+			return false
+		}
 		return body["status"] == "approved"
 	}, 2*time.Second, 10*time.Millisecond, "payment should be auto-approved by the simulated Pix provider")
 }
