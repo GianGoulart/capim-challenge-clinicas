@@ -2,7 +2,9 @@ openapi: 3.0.3
 info:
   title: Capim Clinics API
   version: "1.0.0"
-  description: API para gestão de clínicas odontológicas, dentistas e pagamentos via Pix (simulado).
+  description: >
+    API para gestão de clínicas odontológicas, dentistas e pagamentos via Pix
+    (simulado). Não há autenticação nesta versão (fora do escopo do desafio).
 servers:
   - url: /api/v1
 
@@ -69,11 +71,26 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Clinic' }
+        '404':
+          description: Clínica não encontrada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
     delete:
       summary: Excluir clínica
       responses:
         '204':
           description: Clínica excluída
+        '404':
+          description: Clínica não encontrada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
 
   /clinics/{id}/bank-account:
     parameters:
@@ -94,6 +111,16 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Clinic' }
+        '404':
+          description: Clínica não encontrada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422':
+          description: Dados bancários inválidos
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
 
   /clinics/{clinic_id}/dentists:
     parameters:
@@ -114,6 +141,16 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Dentist' }
+        '404':
+          description: Clínica não encontrada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
     get:
       summary: Listar dentistas da clínica
       responses:
@@ -124,6 +161,11 @@ paths:
               schema:
                 type: array
                 items: { $ref: '#/components/schemas/Dentist' }
+        '404':
+          description: Clínica não encontrada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
 
   /dentists/{id}:
     parameters:
@@ -139,6 +181,11 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Dentist' }
+        '404':
+          description: Dentista não encontrado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
     put:
       summary: Atualizar dentista
       requestBody:
@@ -152,11 +199,26 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Dentist' }
+        '404':
+          description: Dentista não encontrado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
     delete:
       summary: Excluir dentista
       responses:
         '204':
           description: Dentista excluído
+        '404':
+          description: Dentista não encontrado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
 
   /payments:
     post:
@@ -172,6 +234,16 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Payment' }
+        '404':
+          description: Clínica ou dentista informado não encontrado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422':
+          description: "Dados inválidos (ex: valor menor ou igual a zero)"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
 
   /payments/{id}:
     parameters:
@@ -261,7 +333,10 @@ components:
       required: [clinic_id, amount_cents]
       properties:
         clinic_id: { type: string }
-        dentist_id: { type: string, nullable: true }
+        dentist_id:
+          type: string
+          nullable: true
+          description: Opcional. Omita o campo (ou envie null) quando o pagamento não estiver associado a um dentista específico.
         amount_cents: { type: integer, format: int64, example: 15000 }
 
     Payment:
@@ -269,7 +344,10 @@ components:
       properties:
         id: { type: string }
         clinic_id: { type: string }
-        dentist_id: { type: string, nullable: true }
+        dentist_id:
+          type: string
+          nullable: true
+          description: Ausente na resposta JSON quando o pagamento não está associado a um dentista (omitempty).
         amount_cents: { type: integer, format: int64 }
         status: { type: string, enum: [pending, approved] }
         pix_code: { type: string }
