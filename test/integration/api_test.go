@@ -29,7 +29,7 @@ func newTestServer(t *testing.T) *httptest.Server {
 	paymentRepo := memory.NewPaymentRepository()
 	fastPix := pix.NewSimulator(5*time.Millisecond, 10*time.Millisecond)
 
-	clinicService := clinicapp.NewService(clinicRepo)
+	clinicService := clinicapp.NewService(clinicRepo, dentistRepo)
 	dentistService := dentistapp.NewService(dentistRepo, clinicRepo)
 	paymentService := paymentapp.NewService(paymentRepo, clinicRepo, dentistRepo, fastPix)
 
@@ -133,6 +133,33 @@ func TestDentistLifecycle_CreateUnderClinicAndList(t *testing.T) {
 	assert.Len(t, list, 1)
 }
 
+func TestClinicDelete_ConflictWhenDentistsLinkedReturns409(t *testing.T) {
+	srv := newTestServer(t)
+	defer srv.Close()
+
+	clinicResp := postJSON(t, srv.URL+"/api/v1/clinics", map[string]any{
+		"document": "52998224725", "corporate_name": "Corp", "trade_name": "Trade",
+		"bank_code": "341", "agency": "1", "account": "2",
+	})
+	clinicID := decodeJSON(t, clinicResp)["id"].(string)
+
+	dentistResp := postJSON(t, srv.URL+"/api/v1/clinics/"+clinicID+"/dentists", map[string]any{
+		"name": "Dra. Ana", "phone": "+55 11 90000-0000", "email": "ana@example.com", "is_admin": true,
+	})
+	require.Equal(t, http.StatusCreated, dentistResp.StatusCode)
+
+	delReq, err := http.NewRequest(http.MethodDelete, srv.URL+"/api/v1/clinics/"+clinicID, nil)
+	require.NoError(t, err)
+	delResp, err := http.DefaultClient.Do(delReq)
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusConflict, delResp.StatusCode)
+
+	getResp, err := http.Get(srv.URL + "/api/v1/clinics/" + clinicID)
+	require.NoError(t, err)
+	defer getResp.Body.Close()
+	assert.Equal(t, http.StatusOK, getResp.StatusCode, "clinic must not have been deleted")
+}
+
 func TestDentistCreate_UnknownClinicReturns404(t *testing.T) {
 	srv := newTestServer(t)
 	defer srv.Close()
@@ -195,6 +222,34 @@ func TestPaymentCreate_UnknownDentistReturns404(t *testing.T) {
 	})
 
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+}
+
+func TestPaymentCreate_DentistFromDifferentClinicReturns422(t *testing.T) {
+	srv := newTestServer(t)
+	defer srv.Close()
+
+	clinicAResp := postJSON(t, srv.URL+"/api/v1/clinics", map[string]any{
+		"document": "52998224725", "corporate_name": "Corp A", "trade_name": "Trade A",
+		"bank_code": "341", "agency": "1", "account": "2",
+	})
+	clinicAID := decodeJSON(t, clinicAResp)["id"].(string)
+
+	clinicBResp := postJSON(t, srv.URL+"/api/v1/clinics", map[string]any{
+		"document": "11144477735", "corporate_name": "Corp B", "trade_name": "Trade B",
+		"bank_code": "341", "agency": "1", "account": "3",
+	})
+	clinicBID := decodeJSON(t, clinicBResp)["id"].(string)
+
+	dentistResp := postJSON(t, srv.URL+"/api/v1/clinics/"+clinicBID+"/dentists", map[string]any{
+		"name": "Dra. Ana", "phone": "+55 11 90000-0000", "email": "ana@example.com", "is_admin": true,
+	})
+	dentistID := decodeJSON(t, dentistResp)["id"].(string)
+
+	resp := postJSON(t, srv.URL+"/api/v1/payments", map[string]any{
+		"clinic_id": clinicAID, "dentist_id": dentistID, "amount_cents": 1000,
+	})
+
+	assert.Equal(t, http.StatusUnprocessableEntity, resp.StatusCode)
 }
 
 func TestDocsAndOpenAPIEndpoints_AreServed(t *testing.T) {

@@ -27,14 +27,17 @@ func (f *fakeClinicRepository) FindAll(_ context.Context) ([]*clinicdomain.Clini
 }
 func (f *fakeClinicRepository) Delete(_ context.Context, _ string) error { return nil }
 
-type fakeDentistRepository struct{ existing map[string]bool }
+// fakeDentistRepository maps a dentist ID to the clinic ID it belongs to.
+// A dentist ID that is absent from the map is treated as not found.
+type fakeDentistRepository struct{ existing map[string]string }
 
 func (f *fakeDentistRepository) Save(_ context.Context, _ *dentistdomain.Dentist) error { return nil }
 func (f *fakeDentistRepository) FindByID(_ context.Context, id string) (*dentistdomain.Dentist, error) {
-	if !f.existing[id] {
+	clinicID, ok := f.existing[id]
+	if !ok {
 		return nil, apperrors.NotFound("dentist not found")
 	}
-	return &dentistdomain.Dentist{ID: id}, nil
+	return &dentistdomain.Dentist{ID: id, ClinicID: clinicID}, nil
 }
 func (f *fakeDentistRepository) FindByClinicID(_ context.Context, _ string) ([]*dentistdomain.Dentist, error) {
 	return nil, nil
@@ -85,7 +88,7 @@ func (f *fakePixProvider) Simulate(paymentID string, _ paymentdomain.Money, onAp
 
 func TestService_Create_Success(t *testing.T) {
 	clinicRepo := &fakeClinicRepository{existing: map[string]bool{"clinic-1": true}}
-	dentistRepo := &fakeDentistRepository{existing: map[string]bool{}}
+	dentistRepo := &fakeDentistRepository{existing: map[string]string{}}
 	repo := newFakePaymentRepository()
 	provider := &fakePixProvider{}
 	svc := paymentapp.NewService(repo, clinicRepo, dentistRepo, provider)
@@ -99,7 +102,7 @@ func TestService_Create_Success(t *testing.T) {
 
 func TestService_Create_ClinicNotFound(t *testing.T) {
 	clinicRepo := &fakeClinicRepository{existing: map[string]bool{}}
-	dentistRepo := &fakeDentistRepository{existing: map[string]bool{}}
+	dentistRepo := &fakeDentistRepository{existing: map[string]string{}}
 	repo := newFakePaymentRepository()
 	provider := &fakePixProvider{}
 	svc := paymentapp.NewService(repo, clinicRepo, dentistRepo, provider)
@@ -111,7 +114,7 @@ func TestService_Create_ClinicNotFound(t *testing.T) {
 
 func TestService_Create_DentistNotFound(t *testing.T) {
 	clinicRepo := &fakeClinicRepository{existing: map[string]bool{"clinic-1": true}}
-	dentistRepo := &fakeDentistRepository{existing: map[string]bool{}}
+	dentistRepo := &fakeDentistRepository{existing: map[string]string{}}
 	repo := newFakePaymentRepository()
 	provider := &fakePixProvider{}
 	svc := paymentapp.NewService(repo, clinicRepo, dentistRepo, provider)
@@ -122,9 +125,36 @@ func TestService_Create_DentistNotFound(t *testing.T) {
 	assert.True(t, apperrors.Is(err, apperrors.KindNotFound))
 }
 
+func TestService_Create_DentistBelongsToDifferentClinic(t *testing.T) {
+	clinicRepo := &fakeClinicRepository{existing: map[string]bool{"clinic-1": true, "clinic-2": true}}
+	dentistRepo := &fakeDentistRepository{existing: map[string]string{"dentist-1": "clinic-2"}}
+	repo := newFakePaymentRepository()
+	provider := &fakePixProvider{}
+	svc := paymentapp.NewService(repo, clinicRepo, dentistRepo, provider)
+	dentistID := "dentist-1"
+
+	_, err := svc.Create(context.Background(), paymentapp.CreateInput{ClinicID: "clinic-1", DentistID: &dentistID, Cents: 1000})
+
+	assert.True(t, apperrors.Is(err, apperrors.KindValidation))
+}
+
+func TestService_Create_DentistBelongsToSameClinic_Success(t *testing.T) {
+	clinicRepo := &fakeClinicRepository{existing: map[string]bool{"clinic-1": true}}
+	dentistRepo := &fakeDentistRepository{existing: map[string]string{"dentist-1": "clinic-1"}}
+	repo := newFakePaymentRepository()
+	provider := &fakePixProvider{}
+	svc := paymentapp.NewService(repo, clinicRepo, dentistRepo, provider)
+	dentistID := "dentist-1"
+
+	p, err := svc.Create(context.Background(), paymentapp.CreateInput{ClinicID: "clinic-1", DentistID: &dentistID, Cents: 1000})
+
+	require.NoError(t, err)
+	assert.Equal(t, "dentist-1", *p.DentistID)
+}
+
 func TestService_Create_InvalidAmount(t *testing.T) {
 	clinicRepo := &fakeClinicRepository{existing: map[string]bool{"clinic-1": true}}
-	dentistRepo := &fakeDentistRepository{existing: map[string]bool{}}
+	dentistRepo := &fakeDentistRepository{existing: map[string]string{}}
 	repo := newFakePaymentRepository()
 	provider := &fakePixProvider{}
 	svc := paymentapp.NewService(repo, clinicRepo, dentistRepo, provider)
@@ -136,7 +166,7 @@ func TestService_Create_InvalidAmount(t *testing.T) {
 
 func TestService_Create_ProviderError(t *testing.T) {
 	clinicRepo := &fakeClinicRepository{existing: map[string]bool{"clinic-1": true}}
-	dentistRepo := &fakeDentistRepository{existing: map[string]bool{}}
+	dentistRepo := &fakeDentistRepository{existing: map[string]string{}}
 	repo := newFakePaymentRepository()
 	provider := &fakePixProvider{simulateErr: assert.AnError}
 	svc := paymentapp.NewService(repo, clinicRepo, dentistRepo, provider)
@@ -148,7 +178,7 @@ func TestService_Create_ProviderError(t *testing.T) {
 
 func TestService_Create_AutoApprovedByProviderCallback(t *testing.T) {
 	clinicRepo := &fakeClinicRepository{existing: map[string]bool{"clinic-1": true}}
-	dentistRepo := &fakeDentistRepository{existing: map[string]bool{}}
+	dentistRepo := &fakeDentistRepository{existing: map[string]string{}}
 	repo := newFakePaymentRepository()
 	provider := &fakePixProvider{autoApprove: true}
 	svc := paymentapp.NewService(repo, clinicRepo, dentistRepo, provider)
@@ -163,7 +193,7 @@ func TestService_Create_AutoApprovedByProviderCallback(t *testing.T) {
 
 func TestService_Get_NotFound(t *testing.T) {
 	clinicRepo := &fakeClinicRepository{existing: map[string]bool{}}
-	dentistRepo := &fakeDentistRepository{existing: map[string]bool{}}
+	dentistRepo := &fakeDentistRepository{existing: map[string]string{}}
 	repo := newFakePaymentRepository()
 	provider := &fakePixProvider{}
 	svc := paymentapp.NewService(repo, clinicRepo, dentistRepo, provider)

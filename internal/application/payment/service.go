@@ -35,8 +35,14 @@ func (s *Service) Create(ctx context.Context, input CreateInput) (*paymentdomain
 		return nil, err
 	}
 	if input.DentistID != nil {
-		if _, err := s.dentistRepo.FindByID(ctx, *input.DentistID); err != nil {
+		dentist, err := s.dentistRepo.FindByID(ctx, *input.DentistID)
+		if err != nil {
 			return nil, err
+		}
+		if dentist.ClinicID != input.ClinicID {
+			return nil, apperrors.Validation("dentist does not belong to clinic", map[string]string{
+				"dentist_id": "dentist is not associated with the given clinic_id",
+			})
 		}
 	}
 	amount, err := paymentdomain.NewMoney(input.Cents)

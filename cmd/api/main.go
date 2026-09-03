@@ -30,7 +30,7 @@ func main() {
 	paymentRepo := memory.NewPaymentRepository()
 	pixProvider := pix.NewDefaultSimulator()
 
-	clinicService := clinicapp.NewService(clinicRepo)
+	clinicService := clinicapp.NewService(clinicRepo, dentistRepo)
 	dentistService := dentistapp.NewService(dentistRepo, clinicRepo)
 	paymentService := paymentapp.NewService(paymentRepo, clinicRepo, dentistRepo, pixProvider)
 

@@ -7,16 +7,18 @@ import (
 	"github.com/google/uuid"
 
 	clinicdomain "github.com/giancarlogoulart/capim-challenge-clinicas/internal/domain/clinic"
+	dentistdomain "github.com/giancarlogoulart/capim-challenge-clinicas/internal/domain/dentist"
 	"github.com/giancarlogoulart/capim-challenge-clinicas/internal/platform/apperrors"
 )
 
 type Service struct {
-	repo clinicdomain.Repository
-	now  func() time.Time
+	repo        clinicdomain.Repository
+	dentistRepo dentistdomain.Repository
+	now         func() time.Time
 }
 
-func NewService(repo clinicdomain.Repository) *Service {
-	return &Service{repo: repo, now: time.Now}
+func NewService(repo clinicdomain.Repository, dentistRepo dentistdomain.Repository) *Service {
+	return &Service{repo: repo, dentistRepo: dentistRepo, now: time.Now}
 }
 
 type CreateInput struct {
@@ -96,6 +98,20 @@ func (s *Service) UpdateBankAccount(ctx context.Context, id string, input Update
 	return c, nil
 }
 
+// Delete removes a clinic, unless it still has dentists linked to it. A
+// clinic with active dentists cannot be deleted: the caller must remove
+// (or reassign) its dentists first. This avoids leaving orphaned dentist
+// records that reference a non-existent clinic.
 func (s *Service) Delete(ctx context.Context, id string) error {
+	if _, err := s.repo.FindByID(ctx, id); err != nil {
+		return err
+	}
+	dentists, err := s.dentistRepo.FindByClinicID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if len(dentists) > 0 {
+		return apperrors.Conflict("cannot delete clinic with dentists still linked to it")
+	}
 	return s.repo.Delete(ctx, id)
 }
