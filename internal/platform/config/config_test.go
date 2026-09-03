@@ -1,7 +1,6 @@
 package config_test
 
 import (
-	"os"
 	"testing"
 
 	"github.com/giancarlogoulart/capim-challenge-clinicas/internal/platform/config"
@@ -9,8 +8,12 @@ import (
 )
 
 func TestLoad_UsesDefaultsWhenUnset(t *testing.T) {
-	os.Unsetenv("PORT")
-	os.Unsetenv("OPENAPI_PATH")
+	// Use t.Setenv (not os.Unsetenv) so the environment is automatically
+	// restored after this test, even if PORT/OPENAPI_PATH happen to be set
+	// in the ambient environment (e.g. platforms that auto-inject PORT).
+	// getEnv treats an empty string the same as unset.
+	t.Setenv("PORT", "")
+	t.Setenv("OPENAPI_PATH", "")
 
 	cfg := config.Load()
 
