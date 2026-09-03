@@ -21,13 +21,24 @@ func NewClinicRepository() *ClinicRepository {
 	return &ClinicRepository{data: make(map[string]*clinic.Clinic)}
 }
 
+// Save stores a defensive copy of c. The application layer (see
+// clinic.Service.Update/UpdateBankAccount) fetches a clinic via
+// FindByID, mutates it in place, then calls Save again. Storing (and
+// returning, see FindByID/FindAll) copies rather than the caller's
+// pointer ensures no two goroutines — e.g. two concurrent HTTP
+// requests, one PUT and one GET, for the same clinic ID — ever share
+// the same *clinic.Clinic instance, which would otherwise be a data
+// race on its fields.
 func (r *ClinicRepository) Save(_ context.Context, c *clinic.Clinic) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	r.data[c.ID] = c
+	stored := *c
+	r.data[c.ID] = &stored
 	return nil
 }
 
+// FindByID returns a defensive copy of the stored clinic — see the Save
+// doc comment for why this matters.
 func (r *ClinicRepository) FindByID(_ context.Context, id string) (*clinic.Clinic, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
@@ -35,15 +46,19 @@ func (r *ClinicRepository) FindByID(_ context.Context, id string) (*clinic.Clini
 	if !ok {
 		return nil, apperrors.NotFound(fmt.Sprintf("clinic %s not found", id))
 	}
-	return c, nil
+	found := *c
+	return &found, nil
 }
 
+// FindAll returns defensive copies of all stored clinics — see the Save
+// doc comment for why this matters.
 func (r *ClinicRepository) FindAll(_ context.Context) ([]*clinic.Clinic, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	result := make([]*clinic.Clinic, 0, len(r.data))
 	for _, c := range r.data {
-		result = append(result, c)
+		found := *c
+		result = append(result, &found)
 	}
 	return result, nil
 }
