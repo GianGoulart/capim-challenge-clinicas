@@ -20,13 +20,25 @@ func NewPaymentRepository() *PaymentRepository {
 	return &PaymentRepository{data: make(map[string]*payment.Payment)}
 }
 
+// Save stores a defensive copy of p. Payments are unique among this
+// package's aggregates in that they can be mutated concurrently from a
+// background goroutine — the PixProvider's asynchronous confirmation
+// callback (see application/payment.Service.onApproved) — while an HTTP
+// handler may be reading the same payment at the same time. Storing (and
+// returning, see FindByID) copies rather than the caller's pointer
+// ensures no two goroutines ever share the same *payment.Payment
+// instance, which would otherwise be a data race on its Status/UpdatedAt
+// fields.
 func (r *PaymentRepository) Save(_ context.Context, p *payment.Payment) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	r.data[p.ID] = p
+	stored := *p
+	r.data[p.ID] = &stored
 	return nil
 }
 
+// FindByID returns a defensive copy of the stored payment — see the Save
+// doc comment for why this matters for this particular aggregate.
 func (r *PaymentRepository) FindByID(_ context.Context, id string) (*payment.Payment, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
@@ -34,5 +46,6 @@ func (r *PaymentRepository) FindByID(_ context.Context, id string) (*payment.Pay
 	if !ok {
 		return nil, apperrors.NotFound(fmt.Sprintf("payment %s not found", id))
 	}
-	return p, nil
+	found := *p
+	return &found, nil
 }
