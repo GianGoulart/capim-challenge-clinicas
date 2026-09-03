@@ -68,13 +68,20 @@ func (s *Service) Create(ctx context.Context, input CreateInput) (*paymentdomain
 // simulated confirmation window elapses. The payment is guaranteed to
 // already be persisted by the time this runs, since Create saves it
 // before calling Simulate.
+//
+// Both failure branches below are intentionally silent: onApproved runs
+// on a fire-and-forget goroutine with no request context to report back
+// to, and the PixProvider port's callback signature (func(paymentID
+// string), no error return) forbids surfacing an error even if we wanted
+// to. Do not add panics or turn this into an error-returning callback
+// without first revisiting the PixProvider contract.
 func (s *Service) onApproved(paymentID string) {
 	ctx := context.Background()
 	p, err := s.repo.FindByID(ctx, paymentID)
 	if err != nil {
 		return
 	}
-	if err := p.Approve(time.Now()); err != nil {
+	if err := p.Approve(s.now()); err != nil {
 		return
 	}
 	_ = s.repo.Save(ctx, p)
