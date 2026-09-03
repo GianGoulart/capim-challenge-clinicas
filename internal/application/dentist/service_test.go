@@ -23,8 +23,10 @@ func (f *fakeClinicRepository) FindByID(_ context.Context, id string) (*clinicdo
 	}
 	return &clinicdomain.Clinic{ID: id}, nil
 }
-func (f *fakeClinicRepository) FindAll(_ context.Context) ([]*clinicdomain.Clinic, error) { return nil, nil }
-func (f *fakeClinicRepository) Delete(_ context.Context, _ string) error                  { return nil }
+func (f *fakeClinicRepository) FindAll(_ context.Context) ([]*clinicdomain.Clinic, error) {
+	return nil, nil
+}
+func (f *fakeClinicRepository) Delete(_ context.Context, _ string) error { return nil }
 
 type fakeDentistRepository struct {
 	data map[string]*dentistdomain.Dentist
