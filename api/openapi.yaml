@@ -1,0 +1,289 @@
+openapi: 3.0.3
+info:
+  title: Capim Clinics API
+  version: "1.0.0"
+  description: API para gestão de clínicas odontológicas, dentistas e pagamentos via Pix (simulado).
+servers:
+  - url: /api/v1
+
+paths:
+  /clinics:
+    post:
+      summary: Criar clínica
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ClinicRequest' }
+      responses:
+        '201':
+          description: Clínica criada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Clinic' }
+        '422':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+    get:
+      summary: Listar clínicas
+      responses:
+        '200':
+          description: Lista de clínicas
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Clinic' }
+
+  /clinics/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      summary: Buscar clínica por id
+      responses:
+        '200':
+          description: Clínica encontrada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Clinic' }
+        '404':
+          description: Clínica não encontrada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+    put:
+      summary: Atualizar dados básicos da clínica
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ClinicUpdateRequest' }
+      responses:
+        '200':
+          description: Clínica atualizada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Clinic' }
+    delete:
+      summary: Excluir clínica
+      responses:
+        '204':
+          description: Clínica excluída
+
+  /clinics/{id}/bank-account:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string }
+    put:
+      summary: Atualizar dados bancários da clínica
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/BankAccountRequest' }
+      responses:
+        '200':
+          description: Dados bancários atualizados
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Clinic' }
+
+  /clinics/{clinic_id}/dentists:
+    parameters:
+      - name: clinic_id
+        in: path
+        required: true
+        schema: { type: string }
+    post:
+      summary: Adicionar dentista à clínica
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DentistRequest' }
+      responses:
+        '201':
+          description: Dentista criado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Dentist' }
+    get:
+      summary: Listar dentistas da clínica
+      responses:
+        '200':
+          description: Lista de dentistas
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Dentist' }
+
+  /dentists/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      summary: Buscar dentista por id
+      responses:
+        '200':
+          description: Dentista encontrado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Dentist' }
+    put:
+      summary: Atualizar dentista
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DentistRequest' }
+      responses:
+        '200':
+          description: Dentista atualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Dentist' }
+    delete:
+      summary: Excluir dentista
+      responses:
+        '204':
+          description: Dentista excluído
+
+  /payments:
+    post:
+      summary: Criar cobrança via Pix (simulado)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PaymentRequest' }
+      responses:
+        '201':
+          description: Cobrança criada com status pending
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Payment' }
+
+  /payments/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      summary: Consultar status de um pagamento
+      responses:
+        '200':
+          description: Pagamento encontrado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Payment' }
+        '404':
+          description: Pagamento não encontrado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+components:
+  schemas:
+    ClinicRequest:
+      type: object
+      required: [document, corporate_name, trade_name, bank_code, agency, account]
+      properties:
+        document: { type: string, example: "52998224725" }
+        corporate_name: { type: string }
+        trade_name: { type: string }
+        bank_code: { type: string }
+        agency: { type: string }
+        account: { type: string }
+
+    ClinicUpdateRequest:
+      type: object
+      required: [corporate_name, trade_name]
+      properties:
+        corporate_name: { type: string }
+        trade_name: { type: string }
+
+    BankAccountRequest:
+      type: object
+      required: [bank_code, agency, account]
+      properties:
+        bank_code: { type: string }
+        agency: { type: string }
+        account: { type: string }
+
+    Clinic:
+      type: object
+      properties:
+        id: { type: string }
+        document: { type: string }
+        document_type: { type: string, enum: [CPF, CNPJ] }
+        corporate_name: { type: string }
+        trade_name: { type: string }
+        bank_code: { type: string }
+        agency: { type: string }
+        account: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    DentistRequest:
+      type: object
+      required: [name, phone, email]
+      properties:
+        name: { type: string }
+        phone: { type: string }
+        email: { type: string }
+        is_admin: { type: boolean }
+
+    Dentist:
+      type: object
+      properties:
+        id: { type: string }
+        clinic_id: { type: string }
+        name: { type: string }
+        phone: { type: string }
+        email: { type: string }
+        is_admin: { type: boolean }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    PaymentRequest:
+      type: object
+      required: [clinic_id, amount_cents]
+      properties:
+        clinic_id: { type: string }
+        dentist_id: { type: string, nullable: true }
+        amount_cents: { type: integer, format: int64, example: 15000 }
+
+    Payment:
+      type: object
+      properties:
+        id: { type: string }
+        clinic_id: { type: string }
+        dentist_id: { type: string, nullable: true }
+        amount_cents: { type: integer, format: int64 }
+        status: { type: string, enum: [pending, approved] }
+        pix_code: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code: { type: string }
+            message: { type: string }
+            details:
+              type: object
+              additionalProperties: { type: string }
