@@ -58,3 +58,11 @@ func TestWriteError_UnknownErrorMapsToInternal(t *testing.T) {
 	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &body))
 	assert.Equal(t, "INTERNAL_ERROR", body["error"]["code"])
 }
+
+func TestWriteError_NilErrorMapsToInternal(t *testing.T) {
+	rec := httptest.NewRecorder()
+
+	httpadapter.WriteError(rec, nil)
+
+	assert.Equal(t, 500, rec.Code)
+}
