@@ -17,8 +17,7 @@ type PaymentRepository struct {
 }
 
 // Asserção em tempo de compilação de que *PaymentRepository satisfaz
-// payment.Repository. Veja a seção "Compile-time interface assertions"
-// no README.md para a justificativa.
+// payment.Repository
 var _ payment.Repository = (*PaymentRepository)(nil)
 
 func NewPaymentRepository() *PaymentRepository {

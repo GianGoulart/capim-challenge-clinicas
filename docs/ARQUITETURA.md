@@ -83,7 +83,7 @@ sequenceDiagram
 
 ## Justificativa técnica
 
-### Por que Hexagonal/Clean em vez de alternativas
+### Por que Hexagonal/Clean em vez de outras alternativas
 
 | Critério | Camadas simples (handler→service→repo) | **Hexagonal/Clean (escolhida)** | DDD tático completo |
 |---|---|---|---|
