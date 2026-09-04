@@ -1,0 +1,723 @@
+{
+  "info": {
+    "name": "Capim Challenge — Clínicas API",
+    "description": "Coleção completa da API de gestão de Clínicas, Dentistas e Pagamentos (Pix simulado). Rode a coleção inteira com o Collection Runner (pastas na ordem: Clinics → Dentists → Payments → Error Scenarios → Cleanup → Docs) — os IDs criados em cada requisição são capturados automaticamente em variáveis da coleção e reutilizados nas seguintes, então não é necessário editar nada manualmente entre as chamadas.\n\nPré-requisito: a API rodando localmente (`make run` ou `make docker-up` no diretório do projeto), servindo em http://localhost:8080 por padrão.\n\nVeja também `api/openapi.yaml` (contrato OpenAPI 3.0) e `/docs` (Swagger UI) para a documentação completa de cada endpoint.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080", "type": "string" },
+    { "key": "clinicId", "value": "", "type": "string" },
+    { "key": "dentistId", "value": "", "type": "string" },
+    { "key": "paymentId", "value": "", "type": "string" },
+    { "key": "paymentWithDentistId", "value": "", "type": "string" },
+    { "key": "clinicBId", "value": "", "type": "string" },
+    { "key": "dentistBId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Clinics",
+      "item": [
+        {
+          "name": "Create Clinic",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Response has an id\", function () {",
+                  "    pm.expect(json.id).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "pm.collectionVariables.set(\"clinicId\", json.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"document\": \"52998224725\",\n  \"corporate_name\": \"Clinica Sorriso LTDA\",\n  \"trade_name\": \"Clinica Sorriso\",\n  \"bank_code\": \"341\",\n  \"agency\": \"1234\",\n  \"account\": \"56789-0\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/clinics"
+          }
+        },
+        {
+          "name": "List Clinics",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response is an array\", function () {",
+                  "    pm.expect(pm.response.json()).to.be.an(\"array\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/clinics"
+          }
+        },
+        {
+          "name": "Get Clinic by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/clinics/{{clinicId}}"
+          }
+        },
+        {
+          "name": "Update Clinic",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Corporate name was updated\", function () {",
+                  "    pm.expect(pm.response.json().corporate_name).to.eql(\"Clinica Sorriso Odontologia LTDA\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"corporate_name\": \"Clinica Sorriso Odontologia LTDA\",\n  \"trade_name\": \"Clinica Sorriso\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/clinics/{{clinicId}}"
+          }
+        },
+        {
+          "name": "Update Clinic Bank Account",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Bank code was updated\", function () {",
+                  "    pm.expect(pm.response.json().bank_code).to.eql(\"001\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bank_code\": \"001\",\n  \"agency\": \"0001\",\n  \"account\": \"111-1\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/clinics/{{clinicId}}/bank-account"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dentists",
+      "item": [
+        {
+          "name": "Create Dentist (under Clinic)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Dentist is linked to the clinic\", function () {",
+                  "    pm.expect(json.clinic_id).to.eql(pm.collectionVariables.get(\"clinicId\"));",
+                  "});",
+                  "pm.collectionVariables.set(\"dentistId\", json.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dra. Ana Souza\",\n  \"phone\": \"+55 11 90000-0000\",\n  \"email\": \"ana.souza@example.com\",\n  \"is_admin\": true\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/clinics/{{clinicId}}/dentists"
+          }
+        },
+        {
+          "name": "List Dentists by Clinic",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response is an array with at least 1 dentist\", function () {",
+                  "    pm.expect(pm.response.json()).to.be.an(\"array\").with.lengthOf.at.least(1);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/clinics/{{clinicId}}/dentists"
+          }
+        },
+        {
+          "name": "Get Dentist by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/dentists/{{dentistId}}"
+          }
+        },
+        {
+          "name": "Update Dentist",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Phone was updated\", function () {",
+                  "    pm.expect(pm.response.json().phone).to.eql(\"+55 11 91111-1111\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dra. Ana Souza\",\n  \"phone\": \"+55 11 91111-1111\",\n  \"email\": \"ana.souza@example.com\",\n  \"is_admin\": true\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/dentists/{{dentistId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payments (Pix simulado)",
+      "item": [
+        {
+          "name": "Create Payment (clinic only)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Payment starts as pending with a pix_code\", function () {",
+                  "    pm.expect(json.status).to.eql(\"pending\");",
+                  "    pm.expect(json.pix_code).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "pm.collectionVariables.set(\"paymentId\", json.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clinic_id\": \"{{clinicId}}\",\n  \"amount_cents\": 15000\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/payments"
+          }
+        },
+        {
+          "name": "Create Payment (with dentist)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Payment is linked to the dentist\", function () {",
+                  "    pm.expect(json.dentist_id).to.eql(pm.collectionVariables.get(\"dentistId\"));",
+                  "});",
+                  "pm.collectionVariables.set(\"paymentWithDentistId\", json.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clinic_id\": \"{{clinicId}}\",\n  \"dentist_id\": \"{{dentistId}}\",\n  \"amount_cents\": 25000\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/payments"
+          }
+        },
+        {
+          "name": "Get Payment by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Status is pending or approved\", function () {",
+                  "    pm.expect([\"pending\", \"approved\"]).to.include(pm.response.json().status);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/payments/{{paymentId}}",
+            "description": "O status começa como `pending`. O provedor Pix simulado aprova automaticamente após um delay aleatório de 2-5s em background — repita esta requisição (ex: usando o botão \"Send\" de novo) até ver `\"status\": \"approved\"`."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Error Scenarios",
+      "item": [
+        {
+          "name": "Get Clinic — 404 Not Found",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test(\"Error envelope has NOT_FOUND code\", function () {",
+                  "    pm.expect(pm.response.json().error.code).to.eql(\"NOT_FOUND\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/clinics/does-not-exist"
+          }
+        },
+        {
+          "name": "Create Clinic — 422 Invalid Document",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 422\", function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "pm.test(\"Error envelope has VALIDATION_ERROR code\", function () {",
+                  "    pm.expect(pm.response.json().error.code).to.eql(\"VALIDATION_ERROR\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"document\": \"123\",\n  \"corporate_name\": \"Corp Invalida\",\n  \"trade_name\": \"Trade Invalida\",\n  \"bank_code\": \"341\",\n  \"agency\": \"1\",\n  \"account\": \"2\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/clinics"
+          }
+        },
+        {
+          "name": "Create Dentist — 404 Unknown Clinic",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dra. Ana\",\n  \"phone\": \"+55 11 90000-0000\",\n  \"email\": \"ana@example.com\",\n  \"is_admin\": false\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/clinics/does-not-exist/dentists"
+          }
+        },
+        {
+          "name": "Create Payment — 404 Unknown Dentist",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clinic_id\": \"{{clinicId}}\",\n  \"dentist_id\": \"does-not-exist\",\n  \"amount_cents\": 1000\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/payments"
+          }
+        },
+        {
+          "name": "Create Clinic B (setup for cross-clinic test)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set(\"clinicBId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"document\": \"11144477735\",\n  \"corporate_name\": \"Clinica B LTDA\",\n  \"trade_name\": \"Clinica B\",\n  \"bank_code\": \"341\",\n  \"agency\": \"1\",\n  \"account\": \"3\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/clinics"
+          }
+        },
+        {
+          "name": "Create Dentist under Clinic B (setup)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set(\"dentistBId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dr. Bruno\",\n  \"phone\": \"+55 11 92222-2222\",\n  \"email\": \"bruno@example.com\",\n  \"is_admin\": true\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/clinics/{{clinicBId}}/dentists"
+          }
+        },
+        {
+          "name": "Create Payment — 422 Dentist From Different Clinic",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 422\", function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "pm.test(\"Error mentions the dentist_id field\", function () {",
+                  "    pm.expect(pm.response.json().error.details).to.have.property(\"dentist_id\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clinic_id\": \"{{clinicId}}\",\n  \"dentist_id\": \"{{dentistBId}}\",\n  \"amount_cents\": 1000\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/payments",
+            "description": "clinic_id é da Clínica A, mas dentist_id pertence à Clínica B — deve ser rejeitado com 422."
+          }
+        },
+        {
+          "name": "Delete Clinic B — 409 Conflict (has dentist linked)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 409\", function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "pm.test(\"Error envelope has CONFLICT code\", function () {",
+                  "    pm.expect(pm.response.json().error.code).to.eql(\"CONFLICT\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/clinics/{{clinicBId}}",
+            "description": "Clínica B ainda tem um dentista vinculado (dentistBId) — a exclusão deve ser bloqueada até o dentista ser removido/realocado."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cleanup",
+      "item": [
+        {
+          "name": "Delete Dentist B",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 204\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/dentists/{{dentistBId}}"
+          }
+        },
+        {
+          "name": "Delete Clinic B (now succeeds)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 204\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/clinics/{{clinicBId}}"
+          }
+        },
+        {
+          "name": "Delete Dentist",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 204\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/dentists/{{dentistId}}"
+          }
+        },
+        {
+          "name": "Delete Clinic",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 204\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/clinics/{{clinicId}}"
+          }
+        },
+        {
+          "name": "Get Clinic After Delete — 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/clinics/{{clinicId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Docs",
+      "item": [
+        {
+          "name": "Swagger UI",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/docs"
+          }
+        },
+        {
+          "name": "OpenAPI Spec (YAML)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/openapi.yaml"
+          }
+        }
+      ]
+    }
+  ]
+}

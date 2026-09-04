@@ -123,6 +123,16 @@ Com o servidor rodando:
 
 Todas as rotas ficam sob o prefixo `/api/v1` (ex: `POST /api/v1/clinics`).
 
+**Postman**: importe [`postman/capim-clinicas.postman_collection.json`](postman/capim-clinicas.postman_collection.json)
+para testar todos os endpoints manualmente ou rodar a coleção inteira via Collection Runner —
+as pastas (`Clinics` → `Dentists` → `Payments` → `Error Scenarios` → `Cleanup` → `Docs`) capturam
+os IDs criados automaticamente em variáveis da coleção e os reutilizam nas requisições seguintes,
+então a coleção inteira roda de ponta a ponta sem edição manual. Ela também cobre os cenários de
+erro documentados no OpenAPI (`404`, `409`, `422`), incluindo as validações cross-aggregate
+descritas na seção [Decisões de design notáveis](#decisões-de-design-notáveis). Validado com
+`newman run postman/capim-clinicas.postman_collection.json` (27 requisições, 41 assertions, 0
+falhas).
+
 ## Arquitetura
 
 A solução segue **Arquitetura Hexagonal (Ports & Adapters)**, com elementos
