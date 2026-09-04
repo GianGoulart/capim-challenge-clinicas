@@ -276,6 +276,20 @@ documentação e passam a evitar um bug real que só apareceria em runtime.
 
 ## Decisões de design notáveis
 
+- **DTOs em `adapters/http/dto/`, nunca junto do domínio**: `ClinicResponse`, `DentistResponse`,
+  `PaymentResponse` etc. vivem num pacote dedicado, separado tanto de `internal/domain/*` quanto
+  dos handlers. Entidades de domínio (`Clinic`, `Dentist`, `Payment`) carregam comportamento e
+  invariantes de negócio (`Clinic.UpdateInfo`, `Payment.Approve`); DTOs são apenas dado com tags
+  `json`. Misturar os dois — por exemplo, num pacote genérico `models/` — tende a criar a
+  tentação de expor a entidade de domínio direto como resposta HTTP, acoplando o contrato público
+  da API a detalhes internos (ex: o Value Object `Document` teria que ganhar tags `json` para ser
+  serializado, contaminando o domínio com uma preocupação de transporte). O conversor
+  `dto.ToClinicResponse` existe exatamente para isolar essa tradução na fronteira. O pacote `dto`
+  foi extraído para uma subpasta (em vez de arquivos soltos em `adapters/http`, como no início do
+  projeto) pensando no crescimento da API: à medida que endpoints/DTOs aumentarem, ter um único
+  lugar óbvio para "o contrato de rede de cada recurso" facilita revisão e onboarding, sem exigir
+  nenhuma mudança em `domain` ou `application`.
+
 - **Cópia defensiva nos repositórios in-memory**: `Save`/`FindByID`/`FindAll` em
   `adapters/memory` sempre operam sobre cópias, nunca sobre o ponteiro vivo guardado no `map`.
   Sem isso, uma leitura concorrente com a aprovação assíncrona de um pagamento (ou duas escritas
@@ -305,7 +319,8 @@ internal/
   domain/{clinic,dentist,payment}/   # entidades, Value Objects, ports — zero I/O, zero framework
   application/{clinic,dentist,payment}/  # use cases — orquestram o domínio via ports
   adapters/
-    http/                     # driving adapter: handlers, DTOs, middleware, router, Swagger UI
+    http/                     # driving adapter: handlers, middleware, router, Swagger UI
+      dto/                    # request/response (wire format) por entidade + conversores de/para domain
     memory/                   # driven adapter: repositórios in-memory thread-safe (mutex)
     pix/                      # driven adapter: simulador do provedor Pix
   platform/{config,apperrors}/     # infraestrutura transversal

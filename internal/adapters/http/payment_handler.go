@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/giancarlogoulart/capim-challenge-clinicas/internal/adapters/http/dto"
 	paymentapp "github.com/giancarlogoulart/capim-challenge-clinicas/internal/application/payment"
 	paymentdomain "github.com/giancarlogoulart/capim-challenge-clinicas/internal/domain/payment"
 	"github.com/giancarlogoulart/capim-challenge-clinicas/internal/platform/apperrors"
@@ -29,7 +30,7 @@ func NewPaymentHandler(service paymentService) *PaymentHandler {
 }
 
 func (h *PaymentHandler) Create(w http.ResponseWriter, r *http.Request) {
-	var req paymentRequest
+	var req dto.PaymentRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		WriteError(w, apperrors.Validation("invalid request body", map[string]string{"body": err.Error()}))
 		return
@@ -43,7 +44,7 @@ func (h *PaymentHandler) Create(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, err)
 		return
 	}
-	WriteJSON(w, http.StatusCreated, toPaymentResponse(p))
+	WriteJSON(w, http.StatusCreated, dto.ToPaymentResponse(p))
 }
 
 func (h *PaymentHandler) Get(w http.ResponseWriter, r *http.Request) {
@@ -53,5 +54,5 @@ func (h *PaymentHandler) Get(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, err)
 		return
 	}
-	WriteJSON(w, http.StatusOK, toPaymentResponse(p))
+	WriteJSON(w, http.StatusOK, dto.ToPaymentResponse(p))
 }

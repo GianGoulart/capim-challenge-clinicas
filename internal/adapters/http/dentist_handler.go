@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/giancarlogoulart/capim-challenge-clinicas/internal/adapters/http/dto"
 	dentistapp "github.com/giancarlogoulart/capim-challenge-clinicas/internal/application/dentist"
 	dentistdomain "github.com/giancarlogoulart/capim-challenge-clinicas/internal/domain/dentist"
 	"github.com/giancarlogoulart/capim-challenge-clinicas/internal/platform/apperrors"
@@ -33,7 +34,7 @@ func NewDentistHandler(service dentistService) *DentistHandler {
 
 func (h *DentistHandler) Create(w http.ResponseWriter, r *http.Request) {
 	clinicID := r.PathValue("clinic_id")
-	var req dentistRequest
+	var req dto.DentistRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		WriteError(w, apperrors.Validation("invalid request body", map[string]string{"body": err.Error()}))
 		return
@@ -49,7 +50,7 @@ func (h *DentistHandler) Create(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, err)
 		return
 	}
-	WriteJSON(w, http.StatusCreated, toDentistResponse(d))
+	WriteJSON(w, http.StatusCreated, dto.ToDentistResponse(d))
 }
 
 func (h *DentistHandler) Get(w http.ResponseWriter, r *http.Request) {
@@ -59,7 +60,7 @@ func (h *DentistHandler) Get(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, err)
 		return
 	}
-	WriteJSON(w, http.StatusOK, toDentistResponse(d))
+	WriteJSON(w, http.StatusOK, dto.ToDentistResponse(d))
 }
 
 func (h *DentistHandler) ListByClinic(w http.ResponseWriter, r *http.Request) {
@@ -69,12 +70,12 @@ func (h *DentistHandler) ListByClinic(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, err)
 		return
 	}
-	WriteJSON(w, http.StatusOK, toDentistResponseList(dentists))
+	WriteJSON(w, http.StatusOK, dto.ToDentistResponseList(dentists))
 }
 
 func (h *DentistHandler) Update(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	var req dentistRequest
+	var req dto.DentistRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		WriteError(w, apperrors.Validation("invalid request body", map[string]string{"body": err.Error()}))
 		return
@@ -89,7 +90,7 @@ func (h *DentistHandler) Update(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, err)
 		return
 	}
-	WriteJSON(w, http.StatusOK, toDentistResponse(d))
+	WriteJSON(w, http.StatusOK, dto.ToDentistResponse(d))
 }
 
 func (h *DentistHandler) Delete(w http.ResponseWriter, r *http.Request) {

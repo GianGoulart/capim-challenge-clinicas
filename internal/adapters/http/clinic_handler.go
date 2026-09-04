@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/giancarlogoulart/capim-challenge-clinicas/internal/adapters/http/dto"
 	clinicapp "github.com/giancarlogoulart/capim-challenge-clinicas/internal/application/clinic"
 	clinicdomain "github.com/giancarlogoulart/capim-challenge-clinicas/internal/domain/clinic"
 	"github.com/giancarlogoulart/capim-challenge-clinicas/internal/platform/apperrors"
@@ -33,7 +34,7 @@ func NewClinicHandler(service clinicService) *ClinicHandler {
 }
 
 func (h *ClinicHandler) Create(w http.ResponseWriter, r *http.Request) {
-	var req clinicRequest
+	var req dto.ClinicRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		WriteError(w, apperrors.Validation("invalid request body", map[string]string{"body": err.Error()}))
 		return
@@ -50,7 +51,7 @@ func (h *ClinicHandler) Create(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, err)
 		return
 	}
-	WriteJSON(w, http.StatusCreated, toClinicResponse(c))
+	WriteJSON(w, http.StatusCreated, dto.ToClinicResponse(c))
 }
 
 func (h *ClinicHandler) Get(w http.ResponseWriter, r *http.Request) {
@@ -60,7 +61,7 @@ func (h *ClinicHandler) Get(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, err)
 		return
 	}
-	WriteJSON(w, http.StatusOK, toClinicResponse(c))
+	WriteJSON(w, http.StatusOK, dto.ToClinicResponse(c))
 }
 
 func (h *ClinicHandler) List(w http.ResponseWriter, r *http.Request) {
@@ -69,12 +70,12 @@ func (h *ClinicHandler) List(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, err)
 		return
 	}
-	WriteJSON(w, http.StatusOK, toClinicResponseList(clinics))
+	WriteJSON(w, http.StatusOK, dto.ToClinicResponseList(clinics))
 }
 
 func (h *ClinicHandler) Update(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	var req clinicUpdateRequest
+	var req dto.ClinicUpdateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		WriteError(w, apperrors.Validation("invalid request body", map[string]string{"body": err.Error()}))
 		return
@@ -87,12 +88,12 @@ func (h *ClinicHandler) Update(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, err)
 		return
 	}
-	WriteJSON(w, http.StatusOK, toClinicResponse(c))
+	WriteJSON(w, http.StatusOK, dto.ToClinicResponse(c))
 }
 
 func (h *ClinicHandler) UpdateBankAccount(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	var req bankAccountRequest
+	var req dto.BankAccountRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		WriteError(w, apperrors.Validation("invalid request body", map[string]string{"body": err.Error()}))
 		return
@@ -106,7 +107,7 @@ func (h *ClinicHandler) UpdateBankAccount(w http.ResponseWriter, r *http.Request
 		WriteError(w, err)
 		return
 	}
-	WriteJSON(w, http.StatusOK, toClinicResponse(c))
+	WriteJSON(w, http.StatusOK, dto.ToClinicResponse(c))
 }
 
 func (h *ClinicHandler) Delete(w http.ResponseWriter, r *http.Request) {
