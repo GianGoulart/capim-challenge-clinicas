@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// Clinic is the aggregate root for a dental clinic and its banking details.
+// Clinic é o aggregate root de uma clínica odontológica e seus dados bancários.
 type Clinic struct {
 	ID            string
 	Document      Document

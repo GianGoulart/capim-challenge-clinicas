@@ -27,8 +27,9 @@ func (f *fakeClinicRepository) FindAll(_ context.Context) ([]*clinicdomain.Clini
 }
 func (f *fakeClinicRepository) Delete(_ context.Context, _ string) error { return nil }
 
-// fakeDentistRepository maps a dentist ID to the clinic ID it belongs to.
-// A dentist ID that is absent from the map is treated as not found.
+// fakeDentistRepository mapeia um ID de dentista para o ID da clínica à qual
+// ele pertence. Um ID de dentista ausente do mapa é tratado como não
+// encontrado.
 type fakeDentistRepository struct{ existing map[string]string }
 
 func (f *fakeDentistRepository) Save(_ context.Context, _ *dentistdomain.Dentist) error { return nil }
@@ -63,9 +64,9 @@ func (f *fakePaymentRepository) FindByID(_ context.Context, id string) (*payment
 	return p, nil
 }
 
-// fakePixProvider invokes onApproved synchronously (if autoApprove is true),
-// which is deterministic and fast for tests — real code uses the async
-// pix.Simulator adapter instead.
+// fakePixProvider invoca onApproved de forma síncrona (se autoApprove for
+// true), o que é determinístico e rápido para os testes — o código real usa
+// o adapter assíncrono pix.Simulator.
 type fakePixProvider struct {
 	autoApprove bool
 	simulateErr error

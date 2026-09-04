@@ -18,8 +18,8 @@ type errorEnvelope struct {
 	Error errorBody `json:"error"`
 }
 
-// WriteJSON writes a JSON-encoded body with the given HTTP status code and
-// the appropriate Content-Type header.
+// WriteJSON escreve um corpo codificado em JSON com o código de status HTTP informado e
+// o header Content-Type apropriado.
 func WriteJSON(w http.ResponseWriter, status int, body any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
@@ -28,9 +28,9 @@ func WriteJSON(w http.ResponseWriter, status int, body any) {
 	}
 }
 
-// WriteError maps a domain/application error to an HTTP status code and a
-// consistent JSON error envelope. Errors that are not *apperrors.Error
-// (e.g. unexpected panics recovered upstream) are treated as internal.
+// WriteError mapeia um erro de domain/application para um código de status HTTP e um
+// envelope de erro JSON consistente. Erros que não são *apperrors.Error
+// (ex.: panics inesperados recuperados anteriormente) são tratados como internos.
 func WriteError(w http.ResponseWriter, err error) {
 	var appErr *apperrors.Error
 	status := http.StatusInternalServerError

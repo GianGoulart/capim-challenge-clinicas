@@ -18,10 +18,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// newTestServer builds the full application stack — real in-memory
-// adapters, real use cases, real HTTP router — wired exactly like
-// cmd/api/main.go, but with a fast Pix simulator so tests don't wait
-// multiple seconds for confirmation.
+// newTestServer monta toda a stack da aplicação — adapters in-memory reais,
+// use cases reais, router HTTP real — conectados exatamente como em
+// cmd/api/main.go, mas com um simulador de Pix rápido para os testes não
+// precisarem esperar vários segundos pela confirmação.
 func newTestServer(t *testing.T) *httptest.Server {
 	t.Helper()
 	clinicRepo := memory.NewClinicRepository()
@@ -191,9 +191,10 @@ func TestPaymentLifecycle_CreatedThenAutoApprovedAsynchronously(t *testing.T) {
 	paymentID := created["id"].(string)
 
 	assert.Eventually(t, func() bool {
-		// testify runs this condition func on its own goroutine each tick;
-		// t.FailNow() (used by require) is unsafe there, so use assert +
-		// early-return false instead of require on any failure.
+		// o testify executa essa função de condição na sua própria goroutine
+		// a cada tick; t.FailNow() (usado pelo require) não é seguro nesse
+		// contexto, então usamos assert + retorno antecipado de false em vez
+		// de require em qualquer falha.
 		resp, err := http.Get(srv.URL + "/api/v1/payments/" + paymentID)
 		if !assert.NoError(t, err) {
 			return false

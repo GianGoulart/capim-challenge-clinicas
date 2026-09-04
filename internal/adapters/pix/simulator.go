@@ -8,26 +8,26 @@ import (
 	"github.com/giancarlogoulart/capim-challenge-clinicas/internal/domain/payment"
 )
 
-// Simulator implements payment.PixProvider without any real Pix
-// integration. It generates a fake copy-and-paste code and, after a random
-// delay within [minDelay, maxDelay], invokes onApproved on its own
-// goroutine — simulating an asynchronous payment confirmation.
+// Simulator implementa payment.PixProvider sem nenhuma integração real com
+// o Pix. Ele gera um código copia-e-cola falso e, após um delay aleatório
+// dentro de [minDelay, maxDelay], invoca onApproved na sua própria
+// goroutine — simulando uma confirmação de pagamento assíncrona.
 type Simulator struct {
 	minDelay time.Duration
 	maxDelay time.Duration
 }
 
-// Compile-time assertion that *Simulator satisfies payment.PixProvider.
-// See the "Compile-time interface assertions" section in README.md for
-// the rationale.
+// Asserção em tempo de compilação de que *Simulator satisfaz
+// payment.PixProvider. Veja a seção "Compile-time interface assertions"
+// no README.md para a justificativa.
 var _ payment.PixProvider = (*Simulator)(nil)
 
 func NewSimulator(minDelay, maxDelay time.Duration) *Simulator {
 	return &Simulator{minDelay: minDelay, maxDelay: maxDelay}
 }
 
-// NewDefaultSimulator uses the challenge's suggested 2-5 second
-// confirmation window.
+// NewDefaultSimulator usa a janela de confirmação de 2-5 segundos sugerida
+// pelo desafio.
 func NewDefaultSimulator() *Simulator {
 	return NewSimulator(2*time.Second, 5*time.Second)
 }

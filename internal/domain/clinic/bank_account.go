@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// BankAccount is a Value Object holding the clinic's banking details.
+// BankAccount é um Value Object que armazena os dados bancários da clínica.
 type BankAccount struct {
 	BankCode string
 	Agency   string

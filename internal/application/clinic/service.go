@@ -98,10 +98,10 @@ func (s *Service) UpdateBankAccount(ctx context.Context, id string, input Update
 	return c, nil
 }
 
-// Delete removes a clinic, unless it still has dentists linked to it. A
-// clinic with active dentists cannot be deleted: the caller must remove
-// (or reassign) its dentists first. This avoids leaving orphaned dentist
-// records that reference a non-existent clinic.
+// Delete remove uma clínica, a menos que ela ainda tenha dentistas vinculados a
+// ela. Uma clínica com dentistas ativos não pode ser excluída: quem chamar deve
+// remover (ou realocar) seus dentistas primeiro. Isso evita deixar registros de
+// dentistas órfãos, que fariam referência a uma clínica inexistente.
 func (s *Service) Delete(ctx context.Context, id string) error {
 	if _, err := s.repo.FindByID(ctx, id); err != nil {
 		return err

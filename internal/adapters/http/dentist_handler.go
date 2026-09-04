@@ -11,9 +11,9 @@ import (
 	"github.com/giancarlogoulart/capim-challenge-clinicas/internal/platform/apperrors"
 )
 
-// dentistService is the subset of dentistapp.Service the handler depends on —
-// declared here (consumer side) so tests can supply a fake without needing
-// the real application package.
+// dentistService é o subconjunto de dentistapp.Service do qual o handler depende —
+// declarado aqui (consumer side) para que os testes possam fornecer um fake sem precisar
+// do pacote de application real.
 type dentistService interface {
 	Create(ctx context.Context, input dentistapp.CreateInput) (*dentistdomain.Dentist, error)
 	Get(ctx context.Context, id string) (*dentistdomain.Dentist, error)
@@ -22,12 +22,12 @@ type dentistService interface {
 	Delete(ctx context.Context, id string) error
 }
 
-// DentistHandler exposes HTTP handlers for the dentist resource.
+// DentistHandler expõe os handlers HTTP para o recurso de dentista.
 type DentistHandler struct {
 	service dentistService
 }
 
-// NewDentistHandler builds a DentistHandler backed by the given dentistService.
+// NewDentistHandler cria um DentistHandler baseado no dentistService informado.
 func NewDentistHandler(service dentistService) *DentistHandler {
 	return &DentistHandler{service: service}
 }

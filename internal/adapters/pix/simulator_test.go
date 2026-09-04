@@ -54,6 +54,6 @@ func TestSimulator_InvokesCallbackAfterDelay(t *testing.T) {
 func TestNewDefaultSimulator_UsesTwoToFiveSecondWindow(t *testing.T) {
 	sim := pix.NewDefaultSimulator()
 	assert.NotNil(t, sim)
-	// Behavioral guarantee only — exact delay is randomized and not asserted here.
+	// Apenas garantia comportamental — o delay exato é randomizado e não é verificado aqui.
 	assert.True(t, strings.HasPrefix("ok", "ok"))
 }

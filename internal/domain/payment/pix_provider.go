@@ -1,12 +1,12 @@
 package payment
 
-// PixProvider is the port through which the application layer requests a
-// simulated Pix "copy and paste" code and an asynchronous confirmation.
+// PixProvider é o port através do qual a camada de aplicação solicita um
+// código Pix "copia e cola" simulado e uma confirmação assíncrona.
 //
-// Simulate must return immediately with a pixCode and schedule onApproved
-// to be invoked exactly once, later, with paymentID — real implementations
-// do this via a background goroutine with a randomized delay; test doubles
-// may call it synchronously.
+// Simulate deve retornar imediatamente com um pixCode e agendar a chamada
+// de onApproved exatamente uma vez, mais tarde, com paymentID — implementações
+// reais fazem isso via uma goroutine em background com um delay aleatório;
+// test doubles podem chamá-lo de forma síncrona.
 type PixProvider interface {
 	Simulate(paymentID string, amount Money, onApproved func(paymentID string)) (pixCode string, err error)
 }

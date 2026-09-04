@@ -2,14 +2,14 @@ package config
 
 import "os"
 
-// Config holds runtime configuration loaded from environment variables.
+// Config armazena a configuração de runtime carregada a partir de variáveis de ambiente.
 type Config struct {
 	Port        string
 	OpenAPIPath string
 }
 
-// Load reads configuration from environment variables, falling back to
-// sensible defaults when a variable is unset or empty.
+// Load lê a configuração a partir de variáveis de ambiente, usando
+// defaults sensatos quando uma variável não está definida ou está vazia.
 func Load() Config {
 	return Config{
 		Port:        getEnv("PORT", "8080"),

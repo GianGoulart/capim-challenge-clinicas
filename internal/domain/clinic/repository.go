@@ -2,8 +2,8 @@ package clinic
 
 import "context"
 
-// Repository is the port through which the application layer persists and
-// retrieves clinics. Implementations live in internal/adapters/*.
+// Repository é o port através do qual a camada de aplicação persiste e
+// recupera clínicas. As implementações vivem em internal/adapters/*.
 type Repository interface {
 	Save(ctx context.Context, clinic *Clinic) error
 	FindByID(ctx context.Context, id string) (*Clinic, error)

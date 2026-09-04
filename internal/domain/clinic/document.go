@@ -15,8 +15,8 @@ const (
 
 var nonDigitRE = regexp.MustCompile(`\D`)
 
-// Document is a Value Object representing a Brazilian CPF or CNPJ,
-// validated by its official check-digit algorithm.
+// Document é um Value Object que representa um CPF ou CNPJ brasileiro,
+// validado pelo seu algoritmo oficial de dígito verificador (check-digit).
 type Document struct {
 	docType DocumentType
 	digits  string
@@ -26,9 +26,9 @@ func (d Document) Type() DocumentType { return d.docType }
 func (d Document) Digits() string     { return d.digits }
 func (d Document) String() string     { return d.digits }
 
-// NewDocument parses raw (with or without punctuation) and validates it as
-// a CPF (11 digits) or CNPJ (14 digits) using the official check-digit
-// algorithm.
+// NewDocument faz o parse de raw (com ou sem pontuação) e o valida como
+// um CPF (11 dígitos) ou CNPJ (14 dígitos) usando o algoritmo oficial de
+// dígito verificador (check-digit).
 func NewDocument(raw string) (Document, error) {
 	digits := nonDigitRE.ReplaceAllString(raw, "")
 

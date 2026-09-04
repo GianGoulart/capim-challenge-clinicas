@@ -57,9 +57,10 @@ func (f *fakeClinicRepository) Delete(_ context.Context, id string) error {
 	return nil
 }
 
-// fakeDentistRepository maps a clinic ID to the number of dentists linked
-// to it, for exercising Clinic.Delete's cross-aggregate guard in isolation
-// (it never needs to inspect actual dentist fields).
+// fakeDentistRepository mapeia um ID de clínica para o número de dentistas
+// vinculados a ela, para exercitar a validação cross-aggregate de
+// Clinic.Delete de forma isolada (nunca precisa inspecionar os campos reais
+// do dentista).
 type fakeDentistRepository struct {
 	byClinicID map[string][]*dentistdomain.Dentist
 }

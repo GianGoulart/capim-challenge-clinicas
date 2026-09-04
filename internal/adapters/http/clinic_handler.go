@@ -11,9 +11,9 @@ import (
 	"github.com/giancarlogoulart/capim-challenge-clinicas/internal/platform/apperrors"
 )
 
-// clinicService is the subset of clinicapp.Service the handler depends on —
-// declared here (consumer side) so tests can supply a fake without needing
-// the real application package.
+// clinicService é o subconjunto de clinicapp.Service do qual o handler depende —
+// declarado aqui (consumer side) para que os testes possam fornecer um fake sem precisar
+// do pacote de application real.
 type clinicService interface {
 	Create(ctx context.Context, input clinicapp.CreateInput) (*clinicdomain.Clinic, error)
 	Get(ctx context.Context, id string) (*clinicdomain.Clinic, error)
@@ -23,12 +23,12 @@ type clinicService interface {
 	Delete(ctx context.Context, id string) error
 }
 
-// ClinicHandler exposes HTTP handlers for the clinic resource.
+// ClinicHandler expõe os handlers HTTP para o recurso de clínica.
 type ClinicHandler struct {
 	service clinicService
 }
 
-// NewClinicHandler builds a ClinicHandler backed by the given clinicService.
+// NewClinicHandler cria um ClinicHandler baseado no clinicService informado.
 func NewClinicHandler(service clinicService) *ClinicHandler {
 	return &ClinicHandler{service: service}
 }

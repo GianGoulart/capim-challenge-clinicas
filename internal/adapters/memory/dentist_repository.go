@@ -9,30 +9,28 @@ import (
 	"github.com/giancarlogoulart/capim-challenge-clinicas/internal/platform/apperrors"
 )
 
-// DentistRepository is a thread-safe in-memory implementation of
+// DentistRepository é uma implementação in-memory thread-safe de
 // dentist.Repository.
 type DentistRepository struct {
 	mu   sync.RWMutex
 	data map[string]*dentist.Dentist
 }
 
-// Compile-time assertion that *DentistRepository satisfies
-// dentist.Repository. See the "Compile-time interface assertions"
-// section in README.md for the rationale.
+// Asserção em tempo de compilação de que *DentistRepository satisfaz dentist.Repository
 var _ dentist.Repository = (*DentistRepository)(nil)
 
 func NewDentistRepository() *DentistRepository {
 	return &DentistRepository{data: make(map[string]*dentist.Dentist)}
 }
 
-// Save stores a defensive copy of d. The application layer (see
-// dentist.Service.Update) fetches a dentist via FindByID, mutates it in
-// place, then calls Save again. Storing (and returning, see
-// FindByID/FindByClinicID) copies rather than the caller's pointer
-// ensures no two goroutines — e.g. two concurrent HTTP requests, one
-// PUT and one GET, for the same dentist ID — ever share the same
-// *dentist.Dentist instance, which would otherwise be a data race on
-// its fields.
+// Save armazena uma cópia defensiva de d. A camada de application (veja
+// dentist.Service.Update) busca um dentista via FindByID, muta ele em
+// memória, e então chama Save de novo. Armazenar (e retornar, veja
+// FindByID/FindByClinicID) cópias em vez do ponteiro do chamador garante
+// que nenhuma goroutine — por exemplo, duas requisições HTTP
+// concorrentes, um PUT e um GET, para o mesmo ID de dentista — jamais
+// compartilhe a mesma instância de *dentist.Dentist, o que de outra forma
+// seria uma data race sobre seus campos.
 func (r *DentistRepository) Save(_ context.Context, d *dentist.Dentist) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -41,8 +39,8 @@ func (r *DentistRepository) Save(_ context.Context, d *dentist.Dentist) error {
 	return nil
 }
 
-// FindByID returns a defensive copy of the stored dentist — see the
-// Save doc comment for why this matters.
+// FindByID retorna uma cópia defensiva do dentista armazenado — veja o
+// doc comment de Save para entender por que isso importa.
 func (r *DentistRepository) FindByID(_ context.Context, id string) (*dentist.Dentist, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
@@ -54,8 +52,8 @@ func (r *DentistRepository) FindByID(_ context.Context, id string) (*dentist.Den
 	return &found, nil
 }
 
-// FindByClinicID returns defensive copies of the matching dentists —
-// see the Save doc comment for why this matters.
+// FindByClinicID retorna cópias defensivas dos dentistas correspondentes —
+// veja o doc comment de Save para entender por que isso importa.
 func (r *DentistRepository) FindByClinicID(_ context.Context, clinicID string) ([]*dentist.Dentist, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()

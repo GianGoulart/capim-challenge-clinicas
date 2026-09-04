@@ -2,9 +2,9 @@ package http
 
 import "net/http"
 
-// NewRouter wires all resource handlers under /api/v1, plus /docs and
-// /openapi.yaml for API documentation. openapiPath is the filesystem path
-// to the OpenAPI contract served at /openapi.yaml.
+// NewRouter conecta todos os handlers de recursos sob /api/v1, além de /docs e
+// /openapi.yaml para a documentação da API. openapiPath é o caminho no sistema de arquivos
+// para o contrato OpenAPI servido em /openapi.yaml.
 func NewRouter(clinicHandler *ClinicHandler, dentistHandler *DentistHandler, paymentHandler *PaymentHandler, openapiPath string) http.Handler {
 	mux := http.NewServeMux()
 

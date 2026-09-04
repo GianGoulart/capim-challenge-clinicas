@@ -31,11 +31,11 @@ func TestDentistRepository_SaveAndFindByID(t *testing.T) {
 	assert.Equal(t, d, found)
 }
 
-// TestDentistRepository_FindByID_ReturnsDefensiveCopy pins the
-// copy-on-read/write invariant that prevents a data race between
-// concurrent HTTP requests (e.g. a PUT and a GET for the same dentist
-// ID) that would otherwise share and mutate the same *dentist.Dentist
-// instance outside the repository's lock.
+// TestDentistRepository_FindByID_ReturnsDefensiveCopy fixa o invariante de
+// copy-on-read/write que previne uma data race entre requisições HTTP
+// concorrentes (ex: um PUT e um GET para o mesmo ID de dentista) que, de
+// outra forma, compartilhariam e mutariam a mesma instância de
+// *dentist.Dentist fora do lock do repositório.
 func TestDentistRepository_FindByID_ReturnsDefensiveCopy(t *testing.T) {
 	repo := memory.NewDentistRepository()
 	ctx := context.Background()
@@ -45,12 +45,12 @@ func TestDentistRepository_FindByID_ReturnsDefensiveCopy(t *testing.T) {
 	found, err := repo.FindByID(ctx, "id-1")
 	require.NoError(t, err)
 
-	// Mutating the caller's original pointer after Save must not affect
-	// what the repository returns on a subsequent read.
+	// Mutar o ponteiro original do chamador após o Save não deve afetar
+	// o que o repositório retorna numa leitura subsequente.
 	require.NoError(t, d.Update("Changed", "1", "changed@example.com", false, time.Now()))
 	assert.NotEqual(t, "Changed", found.Name, "FindByID's returned copy should not be aliased by later mutations of the original pointer")
 
-	// Mutating a previously returned copy must not affect a later read.
+	// Mutar uma cópia previamente retornada não deve afetar uma leitura posterior.
 	foundAgain, err := repo.FindByID(ctx, "id-1")
 	require.NoError(t, err)
 	assert.NotSame(t, found, foundAgain, "each FindByID call must return a distinct copy")

@@ -9,8 +9,8 @@ import (
 
 var emailRE = regexp.MustCompile(`^[^\s@]+@[^\s@]+\.[^\s@]+$`)
 
-// Dentist is always bound to a clinic; IsAdmin marks it as one of the
-// clinic's administrators/legal representatives.
+// Dentist está sempre vinculado a uma clínica; IsAdmin marca o dentista
+// como um dos administradores/representantes legais da clínica.
 type Dentist struct {
 	ID        string
 	ClinicID  string

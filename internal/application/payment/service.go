@@ -69,18 +69,18 @@ func (s *Service) Create(ctx context.Context, input CreateInput) (*paymentdomain
 	return p, nil
 }
 
-// onApproved is the callback passed to the PixProvider. It is invoked
-// asynchronously (from a goroutine, in the real adapter) once the
-// simulated confirmation window elapses. The payment is guaranteed to
-// already be persisted by the time this runs, since Create saves it
-// before calling Simulate.
+// onApproved é o callback passado para o PixProvider. Ele é invocado de forma
+// assíncrona (a partir de uma goroutine, no adapter real) assim que a janela
+// de confirmação simulada se esgota. O pagamento tem a garantia de já estar
+// persistido no momento em que isso roda, já que Create o salva antes de
+// chamar Simulate.
 //
-// Both failure branches below are intentionally silent: onApproved runs
-// on a fire-and-forget goroutine with no request context to report back
-// to, and the PixProvider port's callback signature (func(paymentID
-// string), no error return) forbids surfacing an error even if we wanted
-// to. Do not add panics or turn this into an error-returning callback
-// without first revisiting the PixProvider contract.
+// Os dois ramos de falha abaixo são silenciosos de forma intencional:
+// onApproved roda numa goroutine fire-and-forget, sem request context para
+// reportar de volta, e a assinatura do callback do port PixProvider
+// (func(paymentID string), sem retorno de erro) proíbe expor um erro mesmo
+// que quiséssemos. Não adicione panics nem transforme isso num callback que
+// retorna erro sem antes revisitar o contrato do PixProvider.
 func (s *Service) onApproved(paymentID string) {
 	ctx := context.Background()
 	p, err := s.repo.FindByID(ctx, paymentID)

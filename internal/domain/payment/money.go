@@ -5,8 +5,8 @@ import (
 	"fmt"
 )
 
-// Money represents an amount in integer cents, avoiding floating point
-// rounding issues for currency values.
+// Money representa um valor em centavos (inteiro), evitando problemas de
+// arredondamento de ponto flutuante em valores monetários.
 type Money struct {
 	cents int64
 }

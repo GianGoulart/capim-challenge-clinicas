@@ -55,12 +55,12 @@ func TestPaymentRepository_SaveOverwritesExisting(t *testing.T) {
 	assert.Equal(t, payment.StatusApproved, found.Status)
 }
 
-// TestPaymentRepository_FindByID_ReturnsDefensiveCopy pins the
-// copy-on-read/write invariant that fixes the data race between the
-// async Pix-approval goroutine and concurrent HTTP reads (see the doc
-// comment on PaymentRepository.Save): the repository must never hand
-// out a pointer that aliases its internal storage, in either
-// direction.
+// TestPaymentRepository_FindByID_ReturnsDefensiveCopy fixa o invariante de
+// copy-on-read/write que corrige a data race entre a goroutine assíncrona
+// de aprovação do Pix e leituras HTTP concorrentes (veja o doc comment de
+// PaymentRepository.Save): o repositório nunca deve entregar um ponteiro
+// que compartilhe alias com seu armazenamento interno, em nenhuma das
+// direções.
 func TestPaymentRepository_FindByID_ReturnsDefensiveCopy(t *testing.T) {
 	repo := memory.NewPaymentRepository()
 	ctx := context.Background()
@@ -70,12 +70,12 @@ func TestPaymentRepository_FindByID_ReturnsDefensiveCopy(t *testing.T) {
 	found, err := repo.FindByID(ctx, "pay-1")
 	require.NoError(t, err)
 
-	// Mutating the caller's original pointer after Save must not affect
-	// what the repository returns on a subsequent read.
+	// Mutar o ponteiro original do chamador após o Save não deve afetar
+	// o que o repositório retorna numa leitura subsequente.
 	require.NoError(t, p.Approve(time.Now()))
 	assert.NotEqual(t, payment.StatusApproved, found.Status, "FindByID's returned copy should not be aliased by later mutations of the original pointer")
 
-	// Mutating a previously returned copy must not affect a later read.
+	// Mutar uma cópia previamente retornada não deve afetar uma leitura posterior.
 	foundAgain, err := repo.FindByID(ctx, "pay-1")
 	require.NoError(t, err)
 	assert.NotSame(t, found, foundAgain, "each FindByID call must return a distinct copy")

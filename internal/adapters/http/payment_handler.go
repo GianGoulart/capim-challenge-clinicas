@@ -11,20 +11,20 @@ import (
 	"github.com/giancarlogoulart/capim-challenge-clinicas/internal/platform/apperrors"
 )
 
-// paymentService is the subset of paymentapp.Service the handler depends on —
-// declared here (consumer side) so tests can supply a fake without needing
-// the real application package.
+// paymentService é o subconjunto de paymentapp.Service do qual o handler depende —
+// declarado aqui (consumer side) para que os testes possam fornecer um fake sem precisar
+// do pacote de application real.
 type paymentService interface {
 	Create(ctx context.Context, input paymentapp.CreateInput) (*paymentdomain.Payment, error)
 	Get(ctx context.Context, id string) (*paymentdomain.Payment, error)
 }
 
-// PaymentHandler exposes HTTP handlers for the payment resource.
+// PaymentHandler expõe os handlers HTTP para o recurso de pagamento.
 type PaymentHandler struct {
 	service paymentService
 }
 
-// NewPaymentHandler builds a PaymentHandler backed by the given paymentService.
+// NewPaymentHandler cria um PaymentHandler baseado no paymentService informado.
 func NewPaymentHandler(service paymentService) *PaymentHandler {
 	return &PaymentHandler{service: service}
 }

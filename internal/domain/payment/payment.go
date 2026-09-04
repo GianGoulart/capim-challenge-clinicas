@@ -14,10 +14,10 @@ const (
 
 var ErrInvalidTransition = errors.New("payment cannot be approved from its current status")
 
-// Payment represents a simulated Pix charge. PixCode is populated after
-// creation (see SetPixCode) once the PixProvider adapter generates it —
-// this avoids a race between persisting the payment and the provider's
-// asynchronous confirmation callback trying to find it.
+// Payment representa uma cobrança Pix simulada. PixCode é preenchido após
+// a criação (veja SetPixCode) assim que o adapter PixProvider o gera —
+// isso evita uma race condition entre persistir o pagamento e o callback
+// assíncrono de confirmação do provedor tentando encontrá-lo.
 type Payment struct {
 	ID        string
 	ClinicID  string

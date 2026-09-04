@@ -9,31 +9,32 @@ import (
 	"github.com/giancarlogoulart/capim-challenge-clinicas/internal/platform/apperrors"
 )
 
-// PaymentRepository is a thread-safe in-memory implementation of
+// PaymentRepository é uma implementação in-memory thread-safe de
 // payment.Repository.
 type PaymentRepository struct {
 	mu   sync.RWMutex
 	data map[string]*payment.Payment
 }
 
-// Compile-time assertion that *PaymentRepository satisfies
-// payment.Repository. See the "Compile-time interface assertions"
-// section in README.md for the rationale.
+// Asserção em tempo de compilação de que *PaymentRepository satisfaz
+// payment.Repository. Veja a seção "Compile-time interface assertions"
+// no README.md para a justificativa.
 var _ payment.Repository = (*PaymentRepository)(nil)
 
 func NewPaymentRepository() *PaymentRepository {
 	return &PaymentRepository{data: make(map[string]*payment.Payment)}
 }
 
-// Save stores a defensive copy of p. Payments are unique among this
-// package's aggregates in that they can be mutated concurrently from a
-// background goroutine — the PixProvider's asynchronous confirmation
-// callback (see application/payment.Service.onApproved) — while an HTTP
-// handler may be reading the same payment at the same time. Storing (and
-// returning, see FindByID) copies rather than the caller's pointer
-// ensures no two goroutines ever share the same *payment.Payment
-// instance, which would otherwise be a data race on its Status/UpdatedAt
-// fields.
+// Save armazena uma cópia defensiva de p. Pagamentos são únicos entre os
+// agregados deste pacote no sentido de que podem ser mutados
+// concorrentemente por uma goroutine em background — o callback de
+// confirmação assíncrona do PixProvider (veja
+// application/payment.Service.onApproved) — enquanto um handler HTTP pode
+// estar lendo o mesmo pagamento ao mesmo tempo. Armazenar (e retornar,
+// veja FindByID) cópias em vez do ponteiro do chamador garante que
+// nenhuma goroutine jamais compartilhe a mesma instância de
+// *payment.Payment, o que de outra forma seria uma data race sobre seus
+// campos Status/UpdatedAt.
 func (r *PaymentRepository) Save(_ context.Context, p *payment.Payment) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -42,8 +43,9 @@ func (r *PaymentRepository) Save(_ context.Context, p *payment.Payment) error {
 	return nil
 }
 
-// FindByID returns a defensive copy of the stored payment — see the Save
-// doc comment for why this matters for this particular aggregate.
+// FindByID retorna uma cópia defensiva do pagamento armazenado — veja o
+// doc comment de Save para entender por que isso importa especialmente
+// para este agregado.
 func (r *PaymentRepository) FindByID(_ context.Context, id string) (*payment.Payment, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()

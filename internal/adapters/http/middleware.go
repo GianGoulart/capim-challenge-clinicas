@@ -8,8 +8,8 @@ import (
 	"github.com/google/uuid"
 )
 
-// ApplyMiddleware wraps next with recovery, request-id, and access logging,
-// in that order (recovery outermost so it also protects the other two).
+// ApplyMiddleware envolve next com recovery, request-id e access logging,
+// nessa ordem (recovery por fora para que também proteja os outros dois).
 func ApplyMiddleware(next http.Handler) http.Handler {
 	return recoverMiddleware(requestIDMiddleware(loggingMiddleware(next)))
 }

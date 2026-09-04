@@ -1,13 +1,14 @@
-// Package dto holds the HTTP wire-format types (request/response shapes) for
-// every resource, plus the converters between them and domain entities.
+// Package dto contém os tipos de wire format HTTP (formatos de
+// request/response) de cada recurso, além dos conversores entre eles e as
+// entidades de domínio.
 //
-// These types intentionally live outside the domain packages: they are the
-// API contract (JSON field names, flattened Value Objects, optional fields),
-// which changes for reasons unrelated to business rules (e.g. a front-end
-// asking for a renamed field or extra pagination metadata) and must never
-// leak transport concerns (json tags, wire-friendly primitives) into
-// internal/domain. See the "Decisões de design notáveis" section in
-// README.md for the full rationale.
+// Esses tipos vivem propositalmente fora dos pacotes de domínio: eles são o
+// contrato da API (nomes de campo JSON, Value Objects "achatados", campos
+// opcionais), que muda por motivos não relacionados a regras de negócio (ex:
+// um front-end pedindo um campo renomeado ou metadados extras de paginação)
+// e nunca deve deixar preocupações de transporte (tags json, primitivos
+// amigáveis ao wire format) contaminarem internal/domain. Veja a seção
+// "Decisões de design notáveis" no README.md para a justificativa completa.
 package dto
 
 import (
@@ -16,7 +17,7 @@ import (
 	clinicdomain "github.com/giancarlogoulart/capim-challenge-clinicas/internal/domain/clinic"
 )
 
-// ClinicRequest is the request body for POST /clinics.
+// ClinicRequest é o corpo da requisição para POST /clinics.
 type ClinicRequest struct {
 	Document      string `json:"document"`
 	CorporateName string `json:"corporate_name"`
@@ -26,22 +27,22 @@ type ClinicRequest struct {
 	Account       string `json:"account"`
 }
 
-// ClinicUpdateRequest is the request body for PUT /clinics/{id}.
+// ClinicUpdateRequest é o corpo da requisição para PUT /clinics/{id}.
 type ClinicUpdateRequest struct {
 	CorporateName string `json:"corporate_name"`
 	TradeName     string `json:"trade_name"`
 }
 
-// BankAccountRequest is the request body for PUT /clinics/{id}/bank-account.
+// BankAccountRequest é o corpo da requisição para PUT /clinics/{id}/bank-account.
 type BankAccountRequest struct {
 	BankCode string `json:"bank_code"`
 	Agency   string `json:"agency"`
 	Account  string `json:"account"`
 }
 
-// ClinicResponse is the response body for all clinic endpoints. It flattens
-// the Document Value Object into plain string fields — internal/domain
-// never appears in a JSON tag.
+// ClinicResponse é o corpo da resposta de todos os endpoints de clínica. Ele
+// "achata" o Value Object Document em campos string simples — internal/domain
+// nunca aparece numa tag JSON.
 type ClinicResponse struct {
 	ID            string    `json:"id"`
 	Document      string    `json:"document"`
@@ -55,7 +56,7 @@ type ClinicResponse struct {
 	UpdatedAt     time.Time `json:"updated_at"`
 }
 
-// ToClinicResponse converts a domain Clinic into its wire representation.
+// ToClinicResponse converte uma Clinic de domínio para sua representação de wire format.
 func ToClinicResponse(c *clinicdomain.Clinic) ClinicResponse {
 	return ClinicResponse{
 		ID:            c.ID,
@@ -71,8 +72,8 @@ func ToClinicResponse(c *clinicdomain.Clinic) ClinicResponse {
 	}
 }
 
-// ToClinicResponseList converts a slice of domain Clinics into their wire
-// representation.
+// ToClinicResponseList converte um slice de Clinics de domínio para sua
+// representação de wire format.
 func ToClinicResponseList(clinics []*clinicdomain.Clinic) []ClinicResponse {
 	result := make([]ClinicResponse, 0, len(clinics))
 	for _, c := range clinics {

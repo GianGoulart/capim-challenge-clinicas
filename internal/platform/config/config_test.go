@@ -8,10 +8,10 @@ import (
 )
 
 func TestLoad_UsesDefaultsWhenUnset(t *testing.T) {
-	// Use t.Setenv (not os.Unsetenv) so the environment is automatically
-	// restored after this test, even if PORT/OPENAPI_PATH happen to be set
-	// in the ambient environment (e.g. platforms that auto-inject PORT).
-	// getEnv treats an empty string the same as unset.
+	// Usa t.Setenv (em vez de os.Unsetenv) para que o ambiente seja restaurado
+	// automaticamente após este teste, mesmo que PORT/OPENAPI_PATH já estejam
+	// definidas no ambiente (ex: plataformas que injetam PORT automaticamente).
+	// getEnv trata uma string vazia da mesma forma que uma variável não definida.
 	t.Setenv("PORT", "")
 	t.Setenv("OPENAPI_PATH", "")
 
