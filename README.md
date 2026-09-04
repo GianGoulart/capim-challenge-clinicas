@@ -352,4 +352,17 @@ go test ./... -cover   # cobertura por pacote
 - Proteção contra *lost update* em edições concorrentes do mesmo recurso (o mutex dos
   repositórios evita data races de memória, mas duas requisições `PUT` concorrentes ainda podem
   se sobrescrever uma à outra — resolveríamos com um campo de versão/ETag numa iteração futura).
-- Multi-tenancy, internacionalização, rate limiting avançado.
+- **Multi-tenancy** (isolamento de acesso/dados entre organizações). Vale distinguir de
+  **multi-clínica**, que a API já suporta: `POST /clinics` permite criar quantas clínicas forem
+  necessárias, cada uma com seus próprios dentistas e pagamentos via `clinic_id`. O campo
+  `Dentist.IsAdmin` ("um ou mais dentistas como administrador e responsável legal da clínica")
+  é metadado de negócio — descreve um papel dentro da clínica — e não um mecanismo de controle de
+  acesso; hoje ele não governa nenhuma decisão de autorização no código. Multi-tenancy de fato
+  (ex: "um dentista só pode ver/alterar dados da própria clínica") exigiria autenticação para
+  sequer definir "quem está chamando", e autenticação está fora de escopo. Implementar isolamento
+  sem uma identidade real verificável daria uma falsa sensação de segurança, então optamos por não
+  simular nenhuma das duas. Dito isso, o domínio já está com o "formato" propício para isso: como
+  `ClinicID` já é chave estrangeira em `Dentist` e `Payment` (com `FindByClinicID` já existente nos
+  repositórios), adicionar essa restrição depois — quando/se autenticação existir — seria uma
+  mudança isolada na camada de autorização, sem redesenhar `domain` ou `application`.
+- Internacionalização, rate limiting avançado.
