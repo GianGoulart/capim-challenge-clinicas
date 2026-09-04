@@ -17,6 +17,11 @@ type Simulator struct {
 	maxDelay time.Duration
 }
 
+// Compile-time assertion that *Simulator satisfies payment.PixProvider.
+// See the "Compile-time interface assertions" section in README.md for
+// the rationale.
+var _ payment.PixProvider = (*Simulator)(nil)
+
 func NewSimulator(minDelay, maxDelay time.Duration) *Simulator {
 	return &Simulator{minDelay: minDelay, maxDelay: maxDelay}
 }

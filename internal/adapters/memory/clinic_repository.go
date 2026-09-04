@@ -17,6 +17,12 @@ type ClinicRepository struct {
 	data map[string]*clinic.Clinic
 }
 
+// Compile-time assertion that *ClinicRepository satisfies clinic.Repository.
+// See the "Compile-time interface assertions" section in README.md for why
+// this is worth having even though main.go's wiring would already catch a
+// broken implementation at compile time.
+var _ clinic.Repository = (*ClinicRepository)(nil)
+
 func NewClinicRepository() *ClinicRepository {
 	return &ClinicRepository{data: make(map[string]*clinic.Clinic)}
 }

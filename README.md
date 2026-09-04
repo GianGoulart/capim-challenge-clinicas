@@ -73,6 +73,7 @@ técnicas quanto de produto, ao longo do desenvolvimento da solução.
 - [Documentação da API](#documentação-da-api)
 - [Arquitetura](#arquitetura)
 - [Justificativa técnica](#justificativa-técnica)
+- [Compile-time interface assertions](#compile-time-interface-assertions)
 - [Decisões de design notáveis](#decisões-de-design-notáveis)
 - [Estrutura de pastas](#estrutura-de-pastas)
 - [Testes](#testes)
@@ -124,7 +125,7 @@ Todas as rotas ficam sob o prefixo `/api/v1` (ex: `POST /api/v1/clinics`).
 
 ## Arquitetura
 
-A solução segue **Arquitetura Hexagonal / Clean Architecture (Ports & Adapters)**, com elementos
+A solução segue **Arquitetura Hexagonal (Ports & Adapters)**, com elementos
 pontuais de DDD tático (Value Objects para `Document` e `Money`, uma pequena máquina de estados
 para `Payment`) — sem ir até agregados/bounded contexts formais, que seriam desproporcionais ao
 escopo de 3 entidades e um fluxo de pagamento.
@@ -220,6 +221,48 @@ over-engineering que pesa negativamente na avaliação de "Organização do Cód
 | IDs | UUID v4 gerado na aplicação | Desacoplado do storage, sem colisão, padrão em sistemas distribuídos |
 | Testes | `testing` (stdlib) + `testify` (assert/require) + fakes hand-rolled | Legibilidade; fakes evitam acoplar testes a uma lib de mock específica |
 | Tooling | Makefile, Dockerfile, docker-compose, golangci-lint, GitHub Actions CI | Facilita avaliação (`make run`/`make test`) e demonstra maturidade de entrega |
+
+## Compile-time interface assertions
+
+Cada adapter que implementa um port (`internal/adapters/memory/*_repository.go`,
+`internal/adapters/pix/simulator.go`) traz uma linha como esta logo após a declaração do tipo:
+
+```go
+// Compile-time assertion that *ClinicRepository satisfies clinic.Repository.
+var _ clinic.Repository = (*ClinicRepository)(nil)
+```
+
+**Como funciona**: `(*ClinicRepository)(nil)` é um ponteiro nulo do tipo `*ClinicRepository` — não
+aloca nada. Atribuí-lo a uma variável do tipo da interface (`clinic.Repository`) força o
+compilador a checar, ali mesmo, se `*ClinicRepository` implementa todos os métodos do port com as
+assinaturas corretas. O identificador em branco (`var _ = ...`) garante que nenhuma variável real
+é criada — a linha é *dead code* eliminado no binário final, **custo zero em runtime**.
+
+**Por que adicionamos, mesmo não sendo estritamente necessário hoje**: Go já é estaticamente
+tipado, então se um adapter quebrasse o contrato do seu port, `cmd/api/main.go` já não compilaria
+na chamada que passa esse adapter para o `NewService(...)` — o compilador pegaria o erro de
+qualquer forma. O que essa linha melhora é *onde* e *quão rápido* esse erro aparece:
+
+- **Falha localizada**: sem a assertion, esquecer de implementar um método novo do port só
+  aparece como erro de compilação lá em `main.go`, longe de onde a mudança foi feita. Com a
+  assertion, o erro aparece imediatamente no próprio arquivo do adapter (a IDE já sublinha em
+  vermelho ali), sem precisar compilar o pacote `main`.
+- **Documentação de intenção**: Go usa *structural typing* — não existe uma sintaxe de
+  `implements` como em Java/TypeScript. Essa linha deixa explícito, ao lado do tipo, "isto deveria
+  implementar aquele port", verificado pelo compilador em vez de viver só como comentário.
+- **Cresce bem com o projeto**: hoje temos poucos adapters (`memory`, `pix`); se um dia surgir
+  `adapters/postgres/clinic_repository.go` (ver seção de arquitetura acima) ou qualquer outro
+  adapter novo, o padrão já está estabelecido e o custo de manter é uma linha por arquivo.
+
+**Quando ela é realmente indispensável** (não é o nosso caso hoje, mas vale ter em mente): quando
+o tipo concreto só é usado através de `any`/`interface{}`, reflection, ou um registry (ex:
+selecionar o adapter de persistência por uma string vinda de config/env, guardado num
+`map[string]any` e convertido de volta com um *type assertion* em outro lugar do código). Nesse
+cenário, **sem** a assertion, uma implementação quebrada compilaria normalmente e só falharia como
+**panic em runtime**, exatamente no momento do type assertion — potencialmente em produção. Se a
+composition root de `main.go` algum dia evoluir para algo assim (plugins, seleção dinâmica de
+adapter por variável de ambiente, DI baseado em reflection), essas assertions deixam de ser só
+documentação e passam a evitar um bug real que só apareceria em runtime.
 
 ## Decisões de design notáveis
 

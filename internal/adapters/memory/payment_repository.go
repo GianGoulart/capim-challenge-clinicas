@@ -16,6 +16,11 @@ type PaymentRepository struct {
 	data map[string]*payment.Payment
 }
 
+// Compile-time assertion that *PaymentRepository satisfies
+// payment.Repository. See the "Compile-time interface assertions"
+// section in README.md for the rationale.
+var _ payment.Repository = (*PaymentRepository)(nil)
+
 func NewPaymentRepository() *PaymentRepository {
 	return &PaymentRepository{data: make(map[string]*payment.Payment)}
 }

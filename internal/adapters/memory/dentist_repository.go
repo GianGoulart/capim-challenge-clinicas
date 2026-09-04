@@ -16,6 +16,11 @@ type DentistRepository struct {
 	data map[string]*dentist.Dentist
 }
 
+// Compile-time assertion that *DentistRepository satisfies
+// dentist.Repository. See the "Compile-time interface assertions"
+// section in README.md for the rationale.
+var _ dentist.Repository = (*DentistRepository)(nil)
+
 func NewDentistRepository() *DentistRepository {
 	return &DentistRepository{data: make(map[string]*dentist.Dentist)}
 }
